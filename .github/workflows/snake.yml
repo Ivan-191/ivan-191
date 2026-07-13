@@ -1,0 +1,46 @@
+```yaml
+name: Generate contribution snake
+
+on:
+  # Einmal täglich um 00:00 Uhr UTC ausführen
+  schedule:
+    - cron: "0 0 * * *"
+
+  # Ermöglicht das manuelle Starten über den Actions-Tab
+  workflow_dispatch:
+
+  # Beim Ändern dieses Workflows ebenfalls ausführen
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/snake.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: contribution-snake
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Generate snake SVG files
+        uses: Platane/snk/svg-only@v3
+        with:
+          github_user_name: Ivan-191
+          outputs: |
+            dist/github-contribution-grid-snake.svg
+            dist/github-contribution-grid-snake-dark.svg?palette=github-dark
+
+      - name: Publish SVG files to output branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: output
+          publish_dir: ./dist
+          force_orphan: true
